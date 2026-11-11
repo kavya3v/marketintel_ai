@@ -50,6 +50,34 @@ your Fireworks account with JSON mode support. There is no implicit model defaul
 Do not submit the populated `.env`. Both workflow paths load the project-root `.env`;
 existing process environment variables take precedence. Restart after changing it.
 
+### Streamlit Community Cloud configuration
+
+In the deployed app's **Settings → Secrets**, save these as top-level TOML strings
+(no section header), using your own newly issued keys:
+
+```toml
+TAVILY_API_KEY = "your-tavily-key"
+FIREWORKS_API_KEY = "your-fireworks-key"
+FIREWORKS_MODEL = "your-enabled-fireworks-model-id"
+```
+
+The shared `src/configuration.py` loader resolves **Streamlit Secrets first, then
+process environment, then the project `.env`**. All Tavily and Fireworks factories
+use it before client initialization, including extraction and targeted repair.
+Missing Secrets files are normal for local CLI use. Missing keys produce a friendly
+configuration message. No secret values are printed or copied into graph state.
+Do not commit `.env` or `.streamlit/secrets.toml`. Save Secrets and reboot the Cloud
+app after deploying configuration changes. Rotate any keys exposed in chat or logs.
+
+SQLite remains at the project-relative `.marketintel/checkpoints.sqlite` path.
+The process must be able to create files there; connection/permission failures now
+produce a friendly storage error. Local write/read checks do not establish the
+deployed container's permissions. **Community Cloud local disk is temporary: do not
+rely on SQLite checkpoints surviving app restarts, redeployments, or container loss.**
+Persistent storage across Cloud lifecycle events requires an external durable store;
+that is not introduced by this configuration patch. The existing graph/checkpointer
+continues to work while the local database remains available.
+
 **Fresh research calls paid external services.** Use saved evidence or the sample
 for a predictable demonstration. Loading, approval, report formatting, regeneration,
 and downloads do not call research providers. Request Revision and Continue Saved

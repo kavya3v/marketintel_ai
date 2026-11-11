@@ -51,7 +51,7 @@ class FireworksTests(unittest.TestCase):
                 sleep.assert_not_called()
 
     def test_model_must_be_explicit_instead_of_unavailable_default(self):
-        with patch.dict('os.environ', {'FIREWORKS_API_KEY': 'test'}, clear=True):
+        with patch.dict('os.environ', {'FIREWORKS_API_KEY': 'test'}, clear=True), patch('src.configuration.load_dotenv'), patch('src.configuration.st.secrets', {}):
             with self.assertRaisesRegex(a.DiscoveryError, 'FIREWORKS_MODEL'):
                 a._configured_model(a.SearchPlan)
 

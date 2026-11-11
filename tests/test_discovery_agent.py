@@ -88,7 +88,7 @@ class DiscoveryTests(unittest.TestCase):
                 {'title': 'Atlas', 'url': 'javascript:alert(1)', 'content': 'Atlas'}]))
 
     def test_missing_keys(self):
-        with patch.dict(os.environ, {'TAVILY_API_KEY': '', 'FIREWORKS_API_KEY': ''}), patch.object(a, 'load_dotenv'):
+        with patch.dict(os.environ, {'TAVILY_API_KEY': '', 'FIREWORKS_API_KEY': ''}), patch('src.configuration.load_dotenv'):
             with self.assertRaisesRegex(a.DiscoveryError, 'TAVILY_API_KEY'): a.build_discovery_graph()
-        with patch.dict(os.environ, {'FIREWORKS_API_KEY': ''}), patch.object(a, 'load_dotenv'):
+        with patch.dict(os.environ, {'FIREWORKS_API_KEY': ''}), patch('src.configuration.load_dotenv'):
             with self.assertRaisesRegex(a.DiscoveryError, 'FIREWORKS_API_KEY'): a.build_discovery_graph(search_client=Search())

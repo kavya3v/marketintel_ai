@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Protocol, TypedDict
 from urllib.parse import urlparse
 
-from dotenv import load_dotenv
+from src.configuration import get_setting, missing_setting_message
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_fireworks import ChatFireworks
 from langgraph.graph import END, START, StateGraph
@@ -57,6 +57,10 @@ def _failure_kind(error):
 
 
 def _sanitize_provider_message(message: str) -> str:
+    for name in ('TAVILY_API_KEY', 'FIREWORKS_API_KEY'):
+        value = get_setting(name)
+        if value:
+            message = message.replace(value, '[REDACTED]')
     for name, value in os.environ.items():
         if value and any(word in name.upper() for word in ('KEY', 'TOKEN', 'SECRET', 'PASSWORD')):
             message = message.replace(value, '[REDACTED]')
@@ -205,19 +209,19 @@ class JsonResponseModel:
 
 
 def _configured_search_client() -> SearchClient:
-    key = os.getenv('TAVILY_API_KEY', '').strip()
+    key = get_setting('TAVILY_API_KEY')
     if not key:
-        raise DiscoveryError('Missing TAVILY_API_KEY. Add it to the project .env file.')
+        raise DiscoveryError(missing_setting_message('TAVILY_API_KEY'))
     return TavilyClient(api_key=key)
 
 
 def _configured_model(schema: type[BaseModel]) -> DiscoveryModel:
-    key = os.getenv('FIREWORKS_API_KEY', '').strip()
+    key = get_setting('FIREWORKS_API_KEY')
     if not key:
-        raise DiscoveryError('Missing FIREWORKS_API_KEY. Add it to the project .env file.')
-    model_id = os.getenv('FIREWORKS_MODEL', '').strip()
+        raise DiscoveryError(missing_setting_message('FIREWORKS_API_KEY'))
+    model_id = get_setting('FIREWORKS_MODEL')
     if not model_id:
-        raise DiscoveryError('Missing FIREWORKS_MODEL. Set it in .env to a model or deployment ID enabled for inference in your Fireworks account.')
+        raise DiscoveryError(missing_setting_message('FIREWORKS_MODEL'))
     chat = ChatFireworks(
         model=model_id,
         api_key=key, temperature=0, timeout=45, max_retries=0,
@@ -300,7 +304,6 @@ def _invoke(model, schema, instruction, payload, stage):
 
 def build_discovery_graph(*, search_client=None, discovery_model=None, query_model=None):
     """Compile planning -> Tavily search -> evidence-backed selection. Clients are injectable offline."""
-    load_dotenv(Path(__file__).resolve().parents[1] / '.env')
     try:
         search_client = search_client if search_client is not None else _configured_search_client()
         query_model = query_model if query_model is not None else _configured_model(SearchPlan)

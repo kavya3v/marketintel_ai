@@ -13,6 +13,11 @@ from src.full_workflow import build_full_graph, plain
 DEFAULT_DB = Path(__file__).resolve().parents[1] / '.marketintel' / 'checkpoints.sqlite'
 
 
+def _storage_error():
+    return DiscoveryError("Checkpoint storage is unavailable. Ensure the project's .marketintel directory "
+                          'is writable. Cloud local checkpoints are temporary and may be lost on restarts or redeployments.')
+
+
 def _config(run_id):
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}', run_id):
         raise DiscoveryError('Invalid research run ID.')
@@ -23,8 +28,11 @@ def _config(run_id):
 def _run_lock(db_path, run_id):
     """OS-released lock prevents concurrent duplicate approvals across processes."""
     path = Path(db_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle = open(path.parent / f'{path.name}.{run_id}.lock', 'a+b')
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        handle = open(path.parent / f'{path.name}.{run_id}.lock', 'a+b')
+    except OSError:
+        raise _storage_error() from None
     acquired = False
     try:
         handle.seek(0, 2)
@@ -57,10 +65,15 @@ def _run_lock(db_path, run_id):
 @contextmanager
 def research_session(db_path=DEFAULT_DB, **dependencies):
     path = Path(db_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(str(path), check_same_thread=False, timeout=30)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(str(path), check_same_thread=False, timeout=30)
+    except (OSError, sqlite3.Error):
+        raise _storage_error() from None
     try:
         yield build_full_graph(SqliteSaver(connection), **dependencies)
+    except sqlite3.Error:
+        raise _storage_error() from None
     finally:
         connection.close()
 

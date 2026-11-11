@@ -3,11 +3,13 @@ from uuid import uuid4
 import streamlit as st
 from src.discovery_agent import DiscoveryError
 from src.persistence import start_run, load_run, review_run, continue_run, regenerate_briefing
+from src.workflow_guide import render_workflow_guide
 
 
 def render_full_workflow(company, industry, requested=False):
     st.header('Full research workflow')
     st.caption('Verification → bounded evidence repair → human review → approved briefing. Run IDs are saved in the page URL.')
+    guide = st.empty()
     run_id = st.session_state.get('full_run_id') or st.query_params.get('run', '')
     if requested:
         run_id = str(uuid4())
@@ -31,11 +33,20 @@ def render_full_workflow(company, industry, requested=False):
         st.session_state.full_run_id = run_id
         st.query_params['run'] = run_id
     if not run_id:
+        with guide.container():
+            render_workflow_guide()
         return
     try:
         state = load_run(run_id)
+        with guide.container():
+            render_workflow_guide(state)
         if not state:
-            st.info('No saved state found for this run ID.')
+            st.info('This run ID is not available in the current database. Saved runs belong to the '
+                    'database and deployment environment where they were created: a run created locally '
+                    'may not exist on Streamlit Cloud. Cloud-local checkpoints can also be lost after '
+                    'restarts or redeployments. Check the run ID and the environment where you created it. '
+                    'To start a new research run here, enter the company and industry above and select '
+                    'Run Full Research.')
             return
         st.code(run_id, language=None)
         st.text(f"{state.get('company')} · {state.get('industry')} · Status: {state.get('approval_status')}")

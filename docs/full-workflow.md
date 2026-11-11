@@ -31,6 +31,23 @@ or model replacement is needed. Stop an existing server with Ctrl+C before resta
 
 ## State and recovery
 
+Saved run IDs are specific to the current database and deployment environment.
+A run created locally is not automatically available in Streamlit Community Cloud;
+the local database is excluded from Git and is not deployed with the source code.
+If a run is missing, confirm the ID and return to the environment that created it,
+or enter a company/industry and explicitly select **Run Full Research** to create
+a new run. Loading a missing ID never starts research automatically.
+
+The implemented SQLite path is project-relative `.marketintel/checkpoints.sqlite`
+(see `DEFAULT_DB` in `src/persistence.py`). This is local application storage, not
+an external database. **Streamlit Community Cloud's local filesystem is not durable
+across restarts, redeployments, or container replacement.** The current code checks
+storage availability when opening it and displays a friendly error, but the actual
+deployed container's writability has not been independently inspected from here.
+For production, use external persistent storage and a compatible durable LangGraph
+checkpointer (for example, managed PostgreSQL). That migration is a future deployment
+change, not something implemented or guaranteed by this UI-message update.
+
 The official `langgraph-checkpoint-sqlite` saver persists checkpoints in
 `.marketintel/checkpoints.sqlite`. This directory is ignored by git. Keep it when
 restarting or moving the local application. The database contains research content,

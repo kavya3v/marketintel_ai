@@ -9,6 +9,20 @@ PENDING = {'company': 'Notion', 'industry': 'Productivity software', 'approval_s
 
 
 class WorkflowUITests(unittest.TestCase):
+    def test_missing_run_explains_environment_and_offers_new_run(self):
+        with patch('src.workflow_ui.load_run', return_value={}), patch('src.workflow_ui.start_run') as start, patch('src.workflow_ui.review_run') as review:
+            app = AppTest.from_file('../app.py')
+            app.query_params['run'] = 'missing-run'
+            app.run()
+            self.assertFalse(app.exception)
+            message = '\n'.join(element.value for element in app.info)
+            for phrase in ('current database', 'deployment environment', 'locally', 'Streamlit Cloud', 'Run Full Research'):
+                self.assertIn(phrase, message)
+            self.assertNotIn('.marketintel', message)
+            self.assertEqual(app.button(key='run_full').label, 'Run Full Research')
+            start.assert_not_called()
+            review.assert_not_called()
+
     def test_full_run_pauses_and_approval_does_not_repeat(self):
         approved = dict(PENDING, approval_status='approved', final_report='# Approved briefing', _interrupted=False)
         with patch('src.workflow_ui.start_run', return_value=PENDING) as start, patch(

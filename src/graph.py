@@ -1,7 +1,5 @@
 """Composable discovery -> web research -> intelligence extraction workflow."""
 
-from pathlib import Path
-from dotenv import load_dotenv
 from langgraph.graph import START, END, StateGraph
 from src.discovery_agent import (
     ResearchState, build_discovery_graph, discover_competitors, DiscoveryError,
@@ -27,7 +25,6 @@ def build_research_graph(*, search_client=None, followup_model=None, extraction_
 
     def research(state):
         nonlocal search_client, followup_model
-        load_dotenv(Path(__file__).resolve().parents[1] / '.env')
         search_client = search_client if search_client is not None else _configured_search_client()
         followup_model = followup_model if followup_model is not None else _configured_model(FollowupPlan)
         evidence, errors = {}, {}
