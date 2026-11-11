@@ -1,0 +1,47 @@
+# Credentials and local configuration
+.env*
+!.env.example
+.streamlit/secrets.toml
+secrets.*
+*api_keys.*
+*api-key.*
+credentials*.json
+*credentials*.json
+service-account*.json
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+.aws/
+.ssh/
+.codex/
+.local/
+
+# Python environments and caches
+.venv*/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local checkpoints and database sidecars
+.marketintel/
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.sqlite3-journal
+*.db-wal
+*.db-shm
+*.db-journal
+
+# Uncurated local exports; submission sample is in examples/
+/reports/
+/marketintel-*.md
