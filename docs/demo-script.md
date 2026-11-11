@@ -1,8 +1,7 @@
 # Five-minute saved-evidence demonstration
 
 Goal: demonstrate the implemented multi-agent workflow and its limitations without
-waiting for paid research calls. The timed script totals **5:00**. Do not pretend
-the completed run is executing live.
+waiting for paid research calls. 
 
 ## Before the timer
 
