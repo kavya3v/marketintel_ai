@@ -3,9 +3,9 @@
 A Python + LangGraph competitor research system with a Streamlit interface.
 It discovers up to three competitors, collects web evidence, extracts structured
 profiles, checks claims against sources, requests human approval, and produces a
-downloadable Markdown briefing. Missing evidence remains **Not verified**.
+downloadable Markdown briefing. 
 
-Prepared for submission on **November 11, 2026**. This repository documents an
+This repository documents an
 implemented prototype and its observed results, not independently validated market research.
 
 - [Architecture and actual graph](docs/architecture.md)
